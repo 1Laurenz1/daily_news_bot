@@ -21,7 +21,7 @@ async def get_user_info(message: Message) -> UserInfo:
     last_name = getattr(message.from_user, "last_name", None)
     
     user_info = UserInfo(
-        id: user_id,
+        id = user_id,
         username=username,
         first_name=first_name,
         last_name=last_name
