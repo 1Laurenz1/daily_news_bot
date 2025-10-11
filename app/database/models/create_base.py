@@ -1,4 +1,7 @@
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    MappedAsDataclass
+)
 from sqlalchemy.ext.asyncio import (
     AsyncAttrs,
     create_async_engine,
@@ -9,7 +12,11 @@ from sqlalchemy.ext.asyncio import (
 from app.core import settings
 
 
-class Base(AsyncAttrs, DeclarativeBase):
+class Base(
+    AsyncAttrs,
+    DeclarativeBase,
+    MappedAsDataclass
+):
     pass
 
 
