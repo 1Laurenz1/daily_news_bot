@@ -5,9 +5,16 @@ from aiogram.enums import ParseMode
 from asyncio import run
 
 from app.core import logger, settings
+from app.database import engine
+
+
+async def on_shutdown() -> None:
+    await engine.dispose()
+    logger.info("engine was successfully disposed!")
 
 
 async def on_startup() -> None:
+    logger.info("Bot starting...")
     bot = Bot(
         token=settings.BOT_TOKEN.get_secret_value(),
         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
@@ -19,6 +26,7 @@ async def on_startup() -> None:
     )
     
     await bot.delete_webhook(drop_pending_updates=True)
+    logger.info("Bot started successfully!")
     
     try:
         await dp.start_polling(bot)
@@ -27,11 +35,11 @@ async def on_startup() -> None:
         return None
     finally:
         await bot.session.close()
+        await on_shutdown()
 
 
 if __name__ == '__main__':
     try:
         run(on_startup())
-        logger.info("Bot started successfully!")
     except KeyboardInterrupt:
         logger.info("Bot stopped manually.")
