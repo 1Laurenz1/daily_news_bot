@@ -6,6 +6,7 @@ from asyncio import run
 
 from app.core import logger, settings
 from app.database import engine
+from app.bot import start
 
 
 async def on_shutdown() -> None:
@@ -22,7 +23,7 @@ async def on_startup() -> None:
     dp = Dispatcher()
     
     dp.include_routers(
-        
+        start.router
     )
     
     await bot.delete_webhook(drop_pending_updates=True)
