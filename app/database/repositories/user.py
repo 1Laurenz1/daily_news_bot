@@ -38,7 +38,12 @@ class UserRepository:
                 logger.info(f"⚠️User {username}({user_id}) already exists")
                 return exists_user
                 
-            new_user = User(username=username, user_id=user_id)
+            new_user = User(
+            user_id=user_id,
+            username=username,
+            interests=None,
+            notification_time=None,
+            )
             session.add(new_user)
             await session.commit()
             await session.refresh(new_user)

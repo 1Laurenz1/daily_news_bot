@@ -47,3 +47,15 @@ class User(Base, TimestampMixin):
         Integer,
         default=5
     )
+    
+    def __init__(
+        self,
+        user_id: int,
+        username: str,
+        **kwargs
+    ):
+        super().__init__(
+            user_id = user_id,
+            username = username,
+            **kwargs
+        )

@@ -2,7 +2,8 @@ from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 
-from app.core import logger
+from app.core import logger, get_user_info
+from app.database import user_repo, AsyncSessionLocal
 
 
 router = Router()
@@ -10,8 +11,8 @@ router = Router()
 
 @router.message(CommandStart())
 async def cmd_start(message: Message) -> None:
-    username = message.from_user.username or "Uknown"
-    user_id = getattr(message.from_user, "id", None)
+    user_info = await get_user_info(message)
+    user_id, username = user_info.id, user_info.username
     
     await message.answer(
         f"Hi, {username}! I'm your personal tech news curator!\n\n"
@@ -24,3 +25,10 @@ async def cmd_start(message: Message) -> None:
         "Example: Python, Machine Learning, Web Development, DevOps"
     )
     logger.info(f"User {username}({user_id}) started the bot.")
+    
+    async with AsyncSessionLocal() as session:
+        await user_repo.create_user(
+            session,
+            user_id,
+            username
+        )
