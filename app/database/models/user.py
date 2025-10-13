@@ -36,7 +36,8 @@ class User(Base, TimestampMixin):
     )
     
     interests: Mapped[List[str]] = mapped_column(
-        ARRAY(String)
+        ARRAY(String),
+        nullable=True
     )
     notification_time: Mapped[datetime] = mapped_column(
         DateTime,
