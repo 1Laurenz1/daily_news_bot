@@ -4,6 +4,7 @@ from sqlalchemy import (
     BigInteger,
     BIGINT,
     DateTime,
+    Time
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import ARRAY
@@ -39,8 +40,8 @@ class User(Base, TimestampMixin):
         ARRAY(String),
         nullable=True
     )
-    notification_time: Mapped[datetime] = mapped_column(
-        DateTime,
+    notification_time: Mapped[Time] = mapped_column(
+        Time,
         nullable=True
     )
     digest_size: Mapped[int] = mapped_column(

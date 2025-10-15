@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 
 from app.core import logger, get_user_info
 from app.database import user_repo, AsyncSessionLocal
-from app.bot import InterestsState
+from app.bot import InterestsState, NotificationTimeState
 
 
 router = Router()
@@ -68,3 +68,31 @@ async def process_interests(message: Message, state: FSMContext) -> None:
     await message.answer(
         "✅Got it!\nYour interests:\n" + ", ".join(user_interests )
     )
+    
+    await state.set_state(NotificationTimeState.notification_time)
+    
+
+@router.message(NotificationTimeState.notification_time)
+async def process_notification_time(message: Message, state: FSMContext) -> None:
+    user_info = await get_user_info(message)
+    user_id, username = user_info.id, user_info.username
+    
+    await message.answer(
+        "Now, enter the time at which you want to receive notifications:"
+    )
+    
+    new_time = message.text.strip()
+    
+    async with AsyncSessionLocal() as session:
+        await user_repo.update_user_time(
+            session,
+            user_id,
+            username,
+            new_time
+        )
+        
+    await message.answer(
+        f"✅Great! Notification time set to {new_time}.\n"
+        "You will start receiving daily digests of tech news based on your interests!"
+    )
+    await state.clear()

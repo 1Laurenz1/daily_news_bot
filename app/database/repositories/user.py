@@ -1,8 +1,10 @@
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 
 from typing import Optional, List
+from datetime import datetime
+
 
 from app.database import AsyncSessionLocal, User
 from app.core import logger
@@ -39,10 +41,10 @@ class UserRepository:
                 return exists_user, False
                 
             new_user = User(
-            user_id=user_id,
-            username=username,
-            interests=None,
-            notification_time=None,
+                user_id=user_id,
+                username=username,
+                interests=None,
+                notification_time=None,
             )
             session.add(new_user)
             await session.commit()
@@ -63,7 +65,7 @@ class UserRepository:
 
 
     async def save_user_interests(
-        self,
+        self,   
         session: AsyncSession,
         user_id: int,
         username: str,
@@ -106,6 +108,52 @@ class UserRepository:
             return None
         except Exception as e:
             logger.error(f"❌ Unexpected error while saving interests: {e}")
+            await session.rollback()
+            return None
+        
+        
+
+    async def update_user_time(
+        self,
+        session: AsyncSession,
+        user_id: int,
+        username: str,
+        new_time: str
+    ) -> Optional[User]:
+        try:
+            result = await session.execute(
+                select(User).where(User.user_id == user_id)
+            )
+            user = result.scalar_one_or_none()
+
+            if not user:
+                logger.warning(f"⚠️ User {username}({user_id}) not found in DB.")
+                return None
+
+            try:
+                time_obj = datetime.strptime(new_time, "%H:%M").time()
+            except ValueError:
+                logger.error(f"❌ Invalid time format: {new_time}")
+                return None
+
+            if user.notification_time == time_obj:
+                logger.info(f"ℹ️ User {username}({user_id}) already has time {new_time}, skipping update.")
+                return user
+
+            user.notification_time = time_obj
+            await session.commit()
+            await session.refresh(user)
+
+            logger.info(f"✅ Updated notification_time for {username}({user_id}) → {new_time}")
+            return user
+
+        except SQLAlchemyError as sqlerr:
+            logger.error(f"❌ DB error while updating notification_time: {sqlerr}")
+            await session.rollback()
+            return None
+
+        except Exception as e:
+            logger.error(f"❌ Unexpected error while updating notification_time: {e}")
             await session.rollback()
             return None
 
