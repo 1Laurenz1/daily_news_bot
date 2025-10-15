@@ -30,13 +30,13 @@ class UserRepository:
         session: AsyncSession,
         user_id: int,
         username: str
-    ) -> Optional[User]:
+    ) -> tuple[Optional[User], bool]:
         try:
             exists_user = await self._get_user_by_id(session, user_id)
             
             if exists_user:
                 logger.info(f"⚠️User {username}({user_id}) already exists")
-                return exists_user
+                return exists_user, False
                 
             new_user = User(
             user_id=user_id,
@@ -49,17 +49,17 @@ class UserRepository:
             await session.refresh(new_user)
             
             logger.info(f"✅User {username}({user_id}) created successfully")
-            return new_user
+            return new_user, True
             
         except SQLAlchemyError as sqlerr:
             logger.error(f"❌ DB error while creating user: {sqlerr}")
             await session.rollback()
-            return None
+            return None, False
         
         except Exception as e:
             logger.error(f"❌Unexpected error while creating user: {e}")
             await session.rollback()
-            return None
+            return None, False
 
 
     async def save_user_interests(
