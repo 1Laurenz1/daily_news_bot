@@ -6,12 +6,5 @@ from app.database import user_repo
 from datetime import datetime
 
 # TODO: Enable automatic adjustment to the user's region
+# TODO: Create a jobs store
 scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
-
-scheduler.add_job(
-    notification_service.send_daily_news,
-    trigger="cron",
-    hour=datetime.now().hour,
-    minute=datetime.now().minute + 1,
-    start_date=datetime.now(),
-)
