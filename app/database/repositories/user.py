@@ -156,6 +156,36 @@ class UserRepository:
             logger.error(f"❌ Unexpected error while updating notification_time: {e}")
             await session.rollback()
             return None
+    
+
+    async def get_user_time(
+        self,
+        session: AsyncSession,
+        user_id: int,
+    ) -> Optional[User]:
+        try:
+            result = await session.execute(
+                select(User).where(
+                    User.user_id == user_id,
+                    User.notification_time.isnot(None)
+                )
+            )
+            user = result.scalar_one_or_none()
+
+            if not user:
+                logger.info(f"⚠️ User {user_id} has no notification_time.")
+                return None
+
+            logger.info(f"✅ User {user_id} has notification_time {user.notification_time}.")
+            return user
+
+        except SQLAlchemyError as sqlerr:
+            logger.error(f"❌ DB error while fetching notification_time: {sqlerr}")
+            return None
+
+        except Exception as e:
+            logger.error(f"❌ Unexpected error while fetching notification_time: {e}")
+            return None
 
 
 user_repo = UserRepository()

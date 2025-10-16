@@ -71,15 +71,17 @@ async def process_interests(message: Message, state: FSMContext) -> None:
     
     await state.set_state(NotificationTimeState.notification_time)
     
+    await message.answer(
+        "Now, enter the time at which you want to receive notifications.\n"
+        "For example:\n"
+        "8:00"
+    )
+    
 
 @router.message(NotificationTimeState.notification_time)
 async def process_notification_time(message: Message, state: FSMContext) -> None:
     user_info = await get_user_info(message)
     user_id, username = user_info.id, user_info.username
-    
-    await message.answer(
-        "Now, enter the time at which you want to receive notifications:"
-    )
     
     new_time = message.text.strip()
     
