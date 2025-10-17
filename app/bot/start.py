@@ -6,6 +6,7 @@ from aiogram.fsm.context import FSMContext
 from app.core import logger, get_user_info
 from app.database import user_repo, AsyncSessionLocal
 from app.bot import InterestsState, NotificationTimeState
+from app.scheduler.setup import reschedule_user
 
 
 router = Router()
@@ -86,13 +87,20 @@ async def process_notification_time(message: Message, state: FSMContext) -> None
     new_time = message.text.strip()
     
     async with AsyncSessionLocal() as session:
-        await user_repo.update_user_time(
+        updated_user = await user_repo.update_user_time(
             session,
             user_id,
             username,
             new_time
         )
-        
+
+    if not updated_user:
+        await message.answer(
+            "⚠️ Invalid time format. Please enter time as HH:MM (e.g., 08:00)."
+        )
+        return
+
+    await reschedule_user(user_id, message.bot)
     await message.answer(
         f"✅Great! Notification time set to {new_time}.\n"
         "You will start receiving daily digests of tech news based on your interests!"
