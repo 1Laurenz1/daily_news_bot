@@ -7,6 +7,11 @@ from asyncio import run
 from app.core import logger, settings
 from app.database import engine
 from app.bot import start
+from app.scheduler.setup import (
+    start_scheduler,
+    shutdown_scheduler,
+    schedule_all_users,
+)
 
 
 async def on_shutdown() -> None:
@@ -29,12 +34,17 @@ async def on_startup() -> None:
     await bot.delete_webhook(drop_pending_updates=True)
     logger.info("Bot started successfully!")
     
+    # Start scheduler and load jobs from DB
+    start_scheduler()
+    await schedule_all_users(bot)
+    
     try:
         await dp.start_polling(bot)
     except Exception as e:
         logger.error(f"The code finished with an error: {e}")
         return None
     finally:
+        shutdown_scheduler()
         await bot.session.close()
         await on_shutdown()
 
